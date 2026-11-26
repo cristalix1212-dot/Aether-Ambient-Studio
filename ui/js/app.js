@@ -36,11 +36,13 @@ const state = {
   auditionId: null,
   lastHud: 0,
   lastMeter: 0,
+  lastTransport: 0,
   lastVoices: 0,
   lastVoiceTime: 0,
   pipelineRunning: false,
   lastGenerationMs: 0,
   idleCleared: false,
+  eco: false,
   flatNotes: [],
   themeSettings: normalizeSettings(null),
   activeThemeId: 'minecraft_parchment',
@@ -144,7 +146,7 @@ function cacheDom() {
     'exportProgress', 'exportProject', 'exportElapsed', 'btnGenerate', 'btnTheme',
     'themeLabel', 'btnAlgorithm', 'btnRandomAmbient', 'btnProof', 'btnPipelineRun',
     'pipelineSteps', 'pipeSeed', 'pipeKey', 'pipeChords', 'pipeForm', 'pipeRoles',
-    'pipeMix', 'exportPerf'
+    'pipeMix', 'exportPerf', 'btnEco', 'ecoLabel'
   ];
   ids.forEach((id) => { dom[id] = document.getElementById(id); });
   dom.tabs = $$('.browser-tabs button');
@@ -178,6 +180,7 @@ function init() {
   exposeDebugApi();
   applyActiveTheme();
   updateThemeLabel();
+  initializeEco();
   hydrateThemeSettings();
 
   try {
@@ -641,6 +644,35 @@ function showThemeStudio() {
   wireThemeStudio();
 }
 
+
+
+function initializeEco() {
+  const cores = Number(navigator.hardwareConcurrency) || 8;
+  const memory = Number(navigator.deviceMemory) || 8;
+  let saved = null;
+  try { saved = localStorage.getItem('aether.eco'); } catch { /* noop */ }
+  const automatic = cores <= 4 || memory <= 4;
+  const enabled = saved === '1' ? true : saved === '0' ? false : automatic;
+  setEconomy(enabled, { announce: false });
+}
+
+function setEconomy(enabled, { announce = true } = {}) {
+  state.eco = Boolean(enabled);
+  audio.setEconomy(state.eco);
+  if (dom.btnEco) {
+    dom.btnEco.classList.toggle('active', state.eco);
+    dom.btnEco.setAttribute('aria-pressed', String(state.eco));
+    dom.btnEco.title = state.eco
+      ? 'Эко-режим включён: 1 осциллятор на пиано, окно планирования и меньшая нагрузка'
+      : 'HQ-режим: полный тембр пиано, больше голосов';
+  }
+  if (dom.ecoLabel) dom.ecoLabel.textContent = state.eco ? 'ЭКО' : 'HQ';
+  try { localStorage.setItem('aether.eco', state.eco ? '1' : '0'); } catch { /* noop */ }
+  if (announce) {
+    showToast(state.eco ? 'Эко-режим включён' : 'HQ-режим включён',
+      state.eco ? 'Меньше голосов, стабильнее на слабом ПК.' : 'Полный тембр, больше нагрузка на CPU.');
+  }
+}
 
 function syncPipeline() {
   const project = state.project;
@@ -1299,6 +1331,7 @@ function bindGenerator() {
   dom.btnProof.addEventListener('click', loadProof);
   dom.btnAlgorithm.addEventListener('click', showAlgorithm);
   dom.btnTheme.addEventListener('click', showThemeStudio);
+  dom.btnEco.addEventListener('click', () => setEconomy(!state.eco));
   dom.btnExport.addEventListener('click', exportWav);
   dom.btnExportTop.addEventListener('click', exportWav);
   document.addEventListener('click', (event) => {
@@ -1657,6 +1690,7 @@ function menuItems(menu) {
       ['Раздел «Демо»', '', () => setBrowserTab('demos')],
       ['Раздел «Звуки»', '', () => setBrowserTab('sounds')],
       ['—'],
+      ['Эко-режим', state.eco ? 'ON' : 'OFF', () => setEconomy(!state.eco)],
       ['Темы приложения', 'T', showThemeStudio],
       ['Алгоритм генерации', '', showAlgorithm],
       ['—'],
@@ -1792,6 +1826,7 @@ function bindKeyboard() {
     if (key === 'g') { event.preventDefault(); generateAmbient(); }
     if (key === 'r') { event.preventDefault(); randomizeSeed(); }
     if (key === 't') { event.preventDefault(); showThemeStudio(); }
+    if (key === 'e') { event.preventDefault(); setEconomy(!state.eco); }
     if (key === 'p') { event.preventDefault(); setPianoOpen(!state.pianoOpen); }
     if (key === 'l') {
       event.preventDefault();
@@ -1991,6 +2026,8 @@ function exposeDebugApi() {
         audioState: audio.ctx?.state || null,
         loop: state.loop,
         exporting: state.exporting,
+        eco: state.eco,
+        liveStats: audio.lastLiveStats,
         pianoOpen: state.pianoOpen,
         validation: state.project ? validateProject(state.project) : ['no project'],
         errors: window.__AETHER_ERRORS__.slice(-5)
@@ -2013,6 +2050,8 @@ function exposeDebugApi() {
     generate(styleId, seed = null) { return generateAmbient({ styleId, seed }); },
     loadDemo(id) { return loadDemo(id); },
     loadProof() { loadProof(); return true; },
+    setEco(value) { setEconomy(Boolean(value)); return state.eco; },
+    getLiveStats() { return audio.lastLiveStats; },
     setStyle(id) { setStyle(id); return state.styleId; },
     setBrowserTab(tab) { setBrowserTab(tab); return state.browserTab; },
     selectClip(trackIndex, clipId = null) {

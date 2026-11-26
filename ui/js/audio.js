@@ -7,6 +7,8 @@ import { getInstrument, getStyle } from './instruments.js';
 import { projectNotes } from './composer.js';
 
 const TAU = Math.PI * 2;
+const LIVE_LOOKAHEAD_SECONDS = 6;
+const LIVE_SCHEDULE_INTERVAL_MS = 450;
 let sharedNoise = new WeakMap();
 
 export function midiToFreq(midi) {
@@ -404,7 +406,7 @@ function simpleMix(ctx, gains = []) {
   return mix;
 }
 
-function spawnVoice(ctx, bus, instrument, event, t0, duration, sources, track) {
+function spawnVoice(ctx, bus, instrument, event, t0, duration, sources, track, economy = false) {
   const p = instrument.params || {};
   const velocity = clamp(event.velocity, 0.02, 1);
   const frequency = midiToFreq(event.pitch);
@@ -416,6 +418,33 @@ function spawnVoice(ctx, bus, instrument, event, t0, duration, sources, track) {
   switch (engine) {
     case 'felt': {
       const baseCutoff = p.cutoff ?? 1900;
+
+      // Low-CPU path: one PeriodicWave oscillator + one hammer transient.
+      // The six-partial/inharmonic version stays for export and HQ playback.
+      if (economy) {
+        const filter = biquad(ctx, 'lowpass', baseCutoff, 0.35);
+        filter.frequency.setValueAtTime(Math.min(5000, baseCutoff * 1.9 + velocity * 1300), t0);
+        filter.frequency.exponentialRampToValueAtTime(Math.max(650, baseCutoff * 0.72), t0 + Math.max(0.4, Math.min(duration, 5.0)));
+        filter.connect(dest);
+        const decay = clamp(4.4 - (event.pitch - 48) * 0.03, 1.8, 4.8);
+        const env = ctx.createGain();
+        env.gain.setValueAtTime(0.0001, t0);
+        env.gain.exponentialRampToValueAtTime(Math.max(0.0004, 0.42 * velocity), t0 + 0.008);
+        env.gain.exponentialRampToValueAtTime(0.0001, t0 + decay);
+        const osc = addWaveOsc(ctx, 'felt', frequency, t0, Math.min(stopAt, t0 + decay + 0.12), sources, p.detune ?? 2);
+        osc.connect(env);
+        env.connect(filter);
+
+        const hammer = ctx.createGain();
+        hammer.gain.setValueAtTime(0.05 * velocity, t0);
+        hammer.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.07);
+        hammer.connect(dest);
+        const hammerFilter = biquad(ctx, 'lowpass', 1400, 0.7);
+        hammerFilter.connect(hammer);
+        addNoise(ctx, hammerFilter, t0, t0 + 0.085, sources, { loop: false, offset: Math.random() * 1.2 });
+        break;
+      }
+
       const filter = biquad(ctx, 'lowpass', baseCutoff, 0.35);
       filter.frequency.setValueAtTime(Math.min(5000, baseCutoff * 1.9 + velocity * 1300), t0);
       filter.frequency.exponentialRampToValueAtTime(Math.max(650, baseCutoff * 0.72), t0 + Math.max(0.4, Math.min(duration, 5.0)));
@@ -486,6 +515,14 @@ function spawnVoice(ctx, bus, instrument, event, t0, duration, sources, track) {
       filter.frequency.linearRampToValueAtTime(p.cutoff ?? 1400, t0 + Math.min(attack, duration * 0.8));
       const env = amplitudeEnvelope(ctx, dest, t0, 0.115 * velocity, attack, duration, release, 0, 1);
       filter.connect(env);
+      if (economy) {
+        const osc = addWaveOsc(ctx, 'pad', frequency, t0, stopAt, sources, 0);
+        const gain = ctx.createGain();
+        gain.gain.value = 0.72;
+        osc.connect(gain);
+        gain.connect(filter);
+        break;
+      }
       const detune = p.detune ?? 7;
       [-detune, detune].forEach((cents) => {
         const osc = addWaveOsc(ctx, 'pad', frequency, t0, stopAt, sources, cents);
@@ -584,6 +621,14 @@ function spawnVoice(ctx, bus, instrument, event, t0, duration, sources, track) {
       const env = amplitudeEnvelope(ctx, dest, t0, 0.1 * velocity, p.attack ?? 1.4, duration, release, 0, 1);
       const filter = biquad(ctx, 'lowpass', p.cutoff ?? 1500, 0.5);
       filter.connect(env);
+      if (economy) {
+        const osc = addWaveOsc(ctx, 'strings', frequency, t0, stopAt, sources, 0);
+        const gain = ctx.createGain();
+        gain.gain.value = 0.76;
+        osc.connect(gain);
+        gain.connect(filter);
+        break;
+      }
       const detune = p.detune ?? 6;
       [-detune, detune].forEach((cents) => {
         const osc = addWaveOsc(ctx, 'strings', frequency, t0, stopAt, sources, cents);
@@ -660,24 +705,34 @@ function spawnVoice(ctx, bus, instrument, event, t0, duration, sources, track) {
   }
 }
 
-function scheduleProject(ctx, project, trackGraphs, chain, startAt, offsetSec, sources, { skipSilent = false } = {}) {
-  const notes = projectNotes(project);
-  notes.forEach((event) => {
-    if (event.endSec <= offsetSec + 0.002) return;
+function scheduleProject(ctx, project, trackGraphs, chain, startAt, offsetSec, sources, options = {}) {
+  const {
+    skipSilent = false,
+    economy = false,
+    fromSec = null,
+    toSec = Infinity,
+    includeSustaining = false,
+    notes: precomputedNotes = null
+  } = options;
+  const notes = precomputedNotes || projectNotes(project);
+  const anySolo = skipSilent ? project.tracks.some((candidate) => candidate.solo) : false;
+  const windowStart = fromSec === null ? offsetSec : fromSec;
+
+  for (const event of notes) {
+    if (event.startSec >= toSec) break;
+    if (event.endSec <= windowStart + 0.002) continue;
+    if (fromSec !== null && event.startSec < fromSec && !(includeSustaining && event.endSec > fromSec)) continue;
     const track = project.tracks[event.trackIndex];
-    if (!track) return;
-    if (skipSilent) {
-      const anySolo = project.tracks.some((candidate) => candidate.solo);
-      if (track.mute || (anySolo && !track.solo)) return;
-    }
+    if (!track) continue;
+    if (skipSilent && (track.mute || (anySolo && !track.solo))) continue;
     const startDelay = Math.max(0, event.startSec - offsetSec);
     const t0 = startAt + startDelay;
     const remaining = event.endSec - Math.max(offsetSec, event.startSec - 0.01);
-    if (remaining <= 0.03) return;
+    if (remaining <= 0.03) continue;
     const instrument = getInstrument(track.instrumentId);
-    if (!instrument) return;
-    spawnVoice(ctx, trackGraphs[event.trackIndex].input, instrument, event, t0, remaining, sources, track);
-  });
+    if (!instrument) continue;
+    spawnVoice(ctx, trackGraphs[event.trackIndex].input, instrument, event, t0, remaining, sources, track, economy);
+  }
 }
 
 function buildProjectGraph(ctx, project, destination, { live = false, dry = false } = {}) {
@@ -819,13 +874,18 @@ export class AudioEngine {
     this._previewSources = [];
     this._previewGraph = null;
     this._previewCleanup = null;
+    this.economy = false;
+    this._liveNotes = [];
+    this._scheduleCursor = 0;
+    this._lookaheadTimer = null;
+    this.lastLiveStats = null;
   }
 
   ensureContext() {
     if (!this.ctx) {
       const Context = window.AudioContext || window.webkitAudioContext;
       if (!Context) throw new Error('Web Audio is not available');
-      this.ctx = new Context({ latencyHint: 'interactive' });
+      this.ctx = new Context({ latencyHint: this.economy ? 'playback' : 'interactive' });
     }
     if (this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {});
@@ -850,12 +910,65 @@ export class AudioEngine {
     this.graph.chain.master.gain.cancelScheduledValues(0);
     this.graph.chain.master.gain.setValueAtTime(this.masterVolume, this.ctx.currentTime);
     this.sources = [];
+    this._liveNotes = projectNotes(project);
+    this._scheduleCursor = this.offset;
+    this.playing = true;
     const startAt = this.ctx.currentTime + 0.08;
     this.startedAt = startAt;
-    scheduleProject(this.ctx, project, this.graph.trackGraphs, this.graph.chain, startAt, this.offset, this.sources);
-    this.playing = true;
+    // Do not create every oscillator at once: schedule a rolling window so a
+    // weak CPU is not hit by a thousand-node spike before the first beat.
+    this._scheduleLiveWindow(this.offset + LIVE_LOOKAHEAD_SECONDS, true);
+    clearInterval(this._lookaheadTimer);
+    this._lookaheadTimer = setInterval(() => {
+      if (!this.playing) return;
+      this._scheduleLiveWindow(Math.min(max, this.position + LIVE_LOOKAHEAD_SECONDS));
+    }, LIVE_SCHEDULE_INTERVAL_MS);
     this._scheduleEnd((max - this.offset) * 1000 + 120);
     return true;
+  }
+
+  _scheduleLiveWindow(until, includeSustaining = false) {
+    if (!this.playing || !this.project) return;
+    const from = this._scheduleCursor;
+    const to = Math.min(this.project.durationSec, Math.max(from, Number(until) || 0));
+    if (to <= from + 0.01) return;
+    scheduleProject(
+      this.ctx,
+      this.project,
+      this.graph.trackGraphs,
+      this.graph.chain,
+      this.startedAt,
+      this.offset,
+      this.sources,
+      {
+        economy: this.economy,
+        fromSec: from,
+        toSec: to,
+        includeSustaining,
+        notes: this._liveNotes
+      }
+    );
+    this._scheduleCursor = to;
+    this.lastLiveStats = {
+      economy: this.economy,
+      scheduledUntil: Number(to.toFixed(2)),
+      notes: this._liveNotes.length,
+      sources: this.sources.length
+    };
+  }
+
+  _clearLiveScheduler() {
+    clearInterval(this._lookaheadTimer);
+    this._lookaheadTimer = null;
+  }
+
+  setEconomy(value) {
+    const next = Boolean(value);
+    if (this.economy === next) return;
+    this.economy = next;
+    if (this.playing && this.project) {
+      this.play(this.project, this.position, this.loop);
+    }
   }
 
   _scheduleEnd(delayMs) {
@@ -866,6 +979,7 @@ export class AudioEngine {
         this.play(this.project, 0, true);
       } else {
         this.playing = false;
+        this._clearLiveScheduler();
         this.offset = 0;
         this._fadeOut(0.6);
         if (typeof this.onEnd === 'function') this.onEnd();
@@ -906,6 +1020,7 @@ export class AudioEngine {
   stopInternal(fade = 0.05) {
     clearTimeout(this.endTimer);
     this.endTimer = null;
+    this._clearLiveScheduler();
     this.playing = false;
     this._fadeOut(fade);
   }
@@ -1033,7 +1148,7 @@ export class AudioEngine {
     const offline = new OfflineAudioContext(2, frames, renderRate);
     const graph = buildProjectGraph(offline, project, offline.destination, { live: false, dry: Boolean(options.dry) });
     const sources = [];
-    scheduleProject(offline, project, graph.trackGraphs, graph.chain, 0.02, 0, sources, { skipSilent: true });
+    scheduleProject(offline, project, graph.trackGraphs, graph.chain, 0.02, 0, sources, { skipSilent: true, economy: Boolean(options.economy) });
     if (onProgress) onProgress({ phase: 'render', progress: 0.25, message: 'Рендерим дорожки…' });
     const started = performance.now();
     const rendered = await offline.startRendering();
