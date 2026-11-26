@@ -6,6 +6,8 @@
 
 ![AETHER](tests/screens/final_ui.png)
 
+**GitHub:** [cristalix1212-dot/Aether-Ambient-Studio](https://github.com/cristalix1212-dot/Aether-Ambient-Studio) · **Releases:** [последний релиз](https://github.com/cristalix1212-dot/Aether-Ambient-Studio/releases/latest)
+
 ## Что уже внутри
 
 - **5 стилей**, у каждого собственный набор из **16 инструментов** — всего **80**:
@@ -24,14 +26,15 @@
 
 ## Быстрый запуск
 
-Готовое приложение уже собрано и проверено:
+**Скачать готовый релиз:** [AETHER Ambient Studio · Releases](https://github.com/cristalix1212-dot/Aether-Ambient-Studio/releases/latest)
 
-- **Один файл:** `C:\Users\Public\AetherAmbientStudio\AetherAmbientStudio.exe`.
-- **Портативная папка:** `C:\Users\Public\AetherAmbientStudio\App\AetherAmbientStudio.exe`.
-- **Архив портативной версии:** `dist/AetherAmbientStudio_Portable.zip`.
-- **Ярлык:** `AETHER Ambient Studio.lnk` в этой папке. Если Windows покажет предупреждение, нажмите «Открыть».
-- **Примеры нативного экспорта:** `C:\Users\Public\AetherAmbientStudio\Samples\Mosslight.wav` и `...\Samples\Rain on the Hearth.wav`.
-- **20-секундный proof:** `...\Samples\Wet Hands 20s proof.wav` и кнопка **PROOF** в генераторе.
+- **Один файл:** `AetherAmbientStudio.exe` в релизе (и локально `C:\Users\Public\AetherAmbientStudio\AetherAmbientStudio.exe`).
+- **Портативная версия:** `AetherAmbientStudio_Portable.zip` в релизе (локально `dist/AetherAmbientStudio_Portable.zip`).
+- **Исходники:** [github.com/cristalix1212-dot/Aether-Ambient-Studio](https://github.com/cristalix1212-dot/Aether-Ambient-Studio).
+- **20-секундный proof:** `Wet Hands 20s proof.wav` в релизе и кнопка **PROOF** в генераторе.
+- **Примеры:** `Mosslight.wav`, `Rain on the Hearth.wav` в релизе.
+
+Для локальной сборки на этой машине exe лежит в `C:\Users\Public\AetherAmbientStudio\AetherAmbientStudio.exe`, потому что в профиле `C:\Users\Я` есть кириллица.
 
 При первом запуске автоматически открывается демо `Mosslight` из Volume Alpha.
 
