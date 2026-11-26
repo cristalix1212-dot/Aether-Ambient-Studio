@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0c0a08">
+  <title>AETHER — Ambient Studio</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <svg class="svg-defs" aria-hidden="true" focusable="false">
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.4v13.2c0 .8.9 1.3 1.6.9l10.1-6.6c.6-.4.6-1.4 0-1.8L9.6 4.5C8.9 4.1 8 4.6 8 5.4Z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7 5h3.4v14H7zM13.6 5H17v14h-3.4z"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><path d="M6.5 6.5h11v11h-11z"/></symbol>
+    <symbol id="i-loop" viewBox="0 0 24 24"><path d="M7 7h9.2l-2-2 1.4-1.4L20 8l-4.4 4.4L14.2 11l2-2H7a3 3 0 0 0-3 3v1H2v-1a5 5 0 0 1 5-5Zm10 10H7.8l2 2-1.4 1.4L4 16l4.4-4.4L9.8 13l-2 2H17a3 3 0 0 0 3-3v-1h2v1a5 5 0 0 1-5 5Z"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 2 1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2Zm6.6 11 .9 2.5 2.5.9-2.5.9-.9 2.5-.9-2.5-2.5-.9 2.5-.9.9-2.5ZM5 15l.7 1.9 1.9.7-1.9.7L5 20.2l-.7-1.9-1.9-.7 1.9-.7L5 15Z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M11 3h2v9.2l3.1-3.1 1.5 1.5-5.6 5.6-5.6-5.6 1.5-1.5 3.1 3.1V3ZM4 17h16v2H4z"/></symbol>
+    <symbol id="i-dice" viewBox="0 0 24 24"><path d="M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Zm2.3 4.2a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0Zm6.4 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0ZM7.3 14.8a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0Zm6.4 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0Z"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6.5 9 5.5 5.5L17.5 9 19 10.5 12 17.5 5 10.5 6.5 9Z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6.4 5 5.6 5.6L17.6 5 19 6.4 13.4 12 19 17.6 17.6 19 12 13.4 6.4 19 5 17.6 10.6 12 5 6.4 6.4 5Z"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1 5h2v2h-2V7Zm0 4h2v6h-2v-6Z"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm.1 16.2a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4Zm.1-11.7c2.2 0 3.8 1.3 3.8 3.2 0 1.4-.7 2.2-1.9 3-.8.6-1.1 1-1.1 1.9v.3h-1.9v-.5c0-1.4.5-2.2 1.6-3 .9-.6 1.3-1 1.3-1.7 0-.8-.7-1.4-1.8-1.4-1.1 0-1.9.6-2.5 1.5L8 8.6C8.8 7.2 10.2 6.5 12.2 6.5Z"/></symbol>
+    <symbol id="i-pointer" viewBox="0 0 24 24"><path d="m5 3 14 9-6.1 1.2L10 19 8.2 18l2.5-5.2L5 11.5V3Z"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="m16.7 3.3 4 4-12 12-5 1 1-5 12-12ZM5.3 16.7l-.4 2 2-.4 10.9-10.9-1.6-1.6L5.3 16.7Z"/></symbol>
+    <symbol id="i-brush" viewBox="0 0 24 24"><path d="M15.5 3.2 20.8 8.5 13 16.3c-1.1 1.1-2.6 1.8-4.2 1.8H4l2.2-2.2a5.2 5.2 0 0 1 1.8-1.2l1.6-.6 5.9-10.9Zm1.6 6.9-1.9-1.9-4.9 9 1.9 1.9 4.9-9Z"/></symbol>
+    <symbol id="i-export" viewBox="0 0 24 24"><path d="M4 4h9v2H6v12h12v-7h2v9H4V4Zm12.3 1.3 2.4 2.4-7 7-3.2.8.8-3.2 7-7Z"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18h1.1c1.2 0 2-.9 2-1.9 0-.5-.2-1-.6-1.3-.4-.4-.6-.8-.6-1.3 0-.8.7-1.5 1.5-1.5H17a4 4 0 0 0 4-4C21 6.7 17 3 12 3Zm-5 9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3ZM19 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/></symbol>
+  </svg>
+
+  <div id="splash" class="splash">
+    <div class="splash-orbit orbit-a"></div>
+    <div class="splash-orbit orbit-b"></div>
+    <div class="splash-mark">
+      <span class="mark-bar b1"></span><span class="mark-bar b2"></span><span class="mark-bar b3"></span><span class="mark-bar b4"></span><span class="mark-bar b5"></span><span class="mark-bar b6"></span><span class="mark-bar b7"></span>
+    </div>
+    <div class="splash-name">AETHER</div>
+    <div class="splash-sub">AMBIENT STUDIO</div>
+    <div class="splash-loader"><i></i></div>
+    <div class="splash-note">готовим тишину</div>
+  </div>
+
+  <div class="app-shell" id="appShell">
+    <header class="menubar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="brand-text"><strong>AETHER</strong><span>AMBIENT STUDIO</span></div>
+      </div>
+      <nav class="main-menu" aria-label="Главное меню">
+        <button type="button" data-menu="file">Файл</button>
+        <button type="button" data-menu="edit">Правка</button>
+        <button type="button" data-menu="view">Вид</button>
+        <button type="button" data-menu="help">Справка</button>
+      </nav>
+      <div class="menubar-right">
+        <button type="button" class="theme-button" id="btnTheme" title="Темы оформления"><svg><use href="#i-palette"></use></svg><span id="themeLabel">ТЕМА</span></button>
+        <div class="engine-chip" id="engineChip"><span class="engine-dot"></span><span id="engineText">АУДИО ОЖИДАЕТ</span></div>
+        <span class="build-chip">BUILD 1.0</span>
+      </div>
+    </header>
+
+    <section class="transport" aria-label="Транспорт">
+      <div class="transport-controls">
+        <button class="tbtn" id="btnStop" type="button" title="Стоп (S)"><svg><use href="#i-stop"></use></svg></button>
+        <button class="tbtn play-button" id="btnPlay" type="button" title="Играть / пауза (Space)"><svg><use href="#i-play"></use></svg></button>
+        <button class="tbtn" id="btnLoop" type="button" title="Зациклить (L)"><svg><use href="#i-loop"></use></svg></button>
+      </div>
+
+      <div class="lcd" aria-live="off">
+        <div class="lcd-time"><span id="timeMain">00:00</span><span class="lcd-ms" id="timeMs">.00</span></div>
+        <div class="lcd-meta"><span id="barPos">BAR 1.1</span><span class="lcd-divider"></span><span id="lcdState">STOPPED</span></div>
+      </div>
+
+      <div class="tempo-block">
+        <span class="block-label">BPM</span>
+        <div class="tempo-stepper">
+          <button type="button" data-bpm-step="-1" aria-label="Медленнее">−</button>
+          <span id="bpmValue">66.0</span>
+          <button type="button" data-bpm-step="1" aria-label="Быстрее">+</button>
+        </div>
+      </div>
+
+      <div class="key-block">
+        <span class="block-label">KEY</span>
+        <strong id="keyValue">A major</strong>
+      </div>
+
+      <div class="signature-block">
+        <span class="block-label">SIGNATURE</span>
+        <strong>4 / 4</strong>
+      </div>
+
+      <div class="mode-switch" role="group" aria-label="Режим">
+        <button type="button" class="active" id="modeSong">SONG</button>
+        <button type="button" id="modePattern">PATTERN</button>
+      </div>
+
+      <div class="master-block">
+        <div class="master-label"><span>MASTER</span><span id="masterDb">−∞ dB</span></div>
+        <div class="master-meter" id="masterMeter">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="Панель инструментов">
+      <div class="tool-group">
+        <button type="button" class="icon-btn active" data-tool="select" title="Выбор"><svg><use href="#i-pointer"></use></svg></button>
+        <button type="button" class="icon-btn" data-tool="draw" title="Рисовать"><svg><use href="#i-pencil"></use></svg></button>
+        <button type="button" class="icon-btn" data-tool="paint" title="Красить"><svg><use href="#i-brush"></use></svg></button>
+        <span class="toolbar-divider"></span>
+        <button type="button" class="snap-chip" id="snapChip">SNAP <b>1/4</b></button>
+        <span class="toolbar-divider"></span>
+        <button type="button" class="tab-chip active" id="viewPlaylist">PLAYLIST</button>
+        <button type="button" class="tab-chip" id="viewPiano">PIANO ROLL</button>
+      </div>
+      <div class="now-playing">
+        <span class="now-dot"></span>
+        <div><span id="nowTitle">Mosslight</span><em id="nowSubtitle">Volume Alpha · демо 01</em></div>
+      </div>
+      <div class="toolbar-actions">
+        <button type="button" class="ghost-btn" id="btnRandomize"><svg><use href="#i-dice"></use></svg><span>SEED</span></button>
+        <button type="button" class="export-top" id="btnExportTop"><svg><use href="#i-export"></use></svg><span>ЭКСПОРТ WAV</span></button>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <aside class="browser-panel">
+        <div class="browser-head">
+          <div class="panel-eyebrow">БРАУЗЕР</div>
+          <div class="browser-tabs" role="tablist" aria-label="Разделы браузера">
+            <button type="button" class="active" data-browser-tab="styles" role="tab">Стили</button>
+            <button type="button" data-browser-tab="sounds" role="tab">Звуки</button>
+            <button type="button" data-browser-tab="demos" role="tab">Демо</button>
+          </div>
+        </div>
+        <div class="browser-scroll" id="browserContent"></div>
+        <div class="browser-foot"><span>80 инструментов</span><span>10 демо-треков</span></div>
+      </aside>
+
+      <main class="center-panel">
+        <section class="overview-panel">
+          <div class="overview-head"><span>MASTER OVERVIEW</span><span id="overviewMeta">8 TRACKS · 16 BARS</span></div>
+          <div class="overview-canvas-wrap">
+            <canvas id="overviewCanvas" height="56"></canvas>
+            <div class="overview-playhead" id="overviewPlayhead"></div>
+          </div>
+        </section>
+
+        <section class="playlist-panel">
+          <div class="playlist-titlebar">
+            <div class="playlist-title"><span class="title-mark"></span><span>PLAYER</span><em id="playlistTitle">Mosslight</em></div>
+            <div class="playlist-meta" id="playlistMeta">8 TRACKS · 0:58</div>
+            <div class="playlist-tools">
+              <button type="button" class="mini-btn" id="btnZoomOut" title="Уменьшить">−</button>
+              <span class="zoom-label" id="zoomLabel">100%</span>
+              <button type="button" class="mini-btn" id="btnZoomIn" title="Увеличить">+</button>
+            </div>
+          </div>
+          <div class="arrangement" id="arrangement">
+            <div class="arrangement-head">
+              <div class="track-corner"><span>TRACKS</span><b>8</b></div>
+              <div class="ruler" id="ruler"></div>
+            </div>
+            <div class="arrangement-body" id="arrangementBody">
+              <div class="track-headers" id="trackHeaders"></div>
+              <div class="lanes" id="lanes">
+                <div class="lane-grid" id="laneGrid"></div>
+                <div class="lane-rows" id="laneRows"></div>
+                <div class="lane-playhead" id="lanePlayhead"><span></span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="piano-roll" id="pianoRoll">
+          <div class="piano-roll-head">
+            <div class="pr-title"><span class="title-mark teal"></span><span>PIANO ROLL</span><em id="prClipName">ATMOS 01</em></div>
+            <div class="pr-meta" id="prMeta">— нот</div>
+            <button type="button" class="icon-btn pr-close" id="btnClosePiano" title="Скрыть"><svg><use href="#i-close"></use></svg></button>
+          </div>
+          <div class="piano-roll-body">
+            <div class="pr-keys" id="prKeys"></div>
+            <div class="pr-grid-wrap">
+              <div class="pr-grid" id="prGrid"></div>
+              <div class="pr-empty" id="prEmpty">Выберите клип, чтобы увидеть ноты</div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="inspector-panel">
+        <div class="inspector-head">
+          <div class="panel-eyebrow">ГЕНЕРАТОР</div>
+          <button type="button" class="round-help" id="btnHelp" title="Справка"><svg><use href="#i-help"></use></svg></button>
+        </div>
+        <div class="inspector-scroll">
+          <section class="generator-card">
+            <div class="section-label-row"><span class="section-label">СТИЛЬ ГЕНЕРАЦИИ</span><button type="button" class="algo-link" id="btnAlgorithm" title="Как генерируется эмбиент">АЛГОРИТМ</button></div>
+            <div class="style-picker">
+              <button type="button" class="style-picker-button" id="stylePickerButton" aria-haspopup="listbox" aria-expanded="false">
+                <span class="style-picker-dot" id="stylePickerDot"></span>
+                <span id="stylePickerLabel">Volume Alpha 2011</span>
+                <svg><use href="#i-chevron"></use></svg>
+              </button>
+              <div class="style-popover" id="stylePopover" role="listbox" hidden></div>
+            </div>
+            <p class="style-description" id="styleDescription"></p>
+            <div class="style-facts"><span id="styleToolFact">16 инструментов</span><span>·</span><span id="styleDemoFact">2 демо</span></div>
+
+            <div class="field-grid">
+              <label class="field">ТАКТЫ
+                <select id="barsSelect">
+                  <option value="8">8</option>
+                  <option value="16" selected>16</option>
+                  <option value="32">32</option>
+                </select>
+              </label>
+              <label class="field">ТЕМП
+                <input id="bpmInput" type="number" min="36" max="180" step="0.5" value="66.0" inputmode="decimal">
+              </label>
+            </div>
+
+            <div class="seed-field">
+              <label for="seedInput">SEED</label>
+              <div class="seed-control">
+                <input id="seedInput" type="text" spellcheck="false" maxlength="64" value="mosslight-2011">
+                <button type="button" id="btnSeed" title="Случайный seed"><svg><use href="#i-dice"></use></svg></button>
+              </div>
+            </div>
+
+            <button type="button" class="generate-button" id="btnGenerate">
+              <span class="generate-glow"></span>
+              <svg><use href="#i-spark"></use></svg>
+              <span class="generate-copy"><strong>Сгенерировать эмбиент</strong><small id="genHint">16 тактов · ~58 секунд</small></span>
+              <kbd>G</kbd>
+            </button>
+            <div class="generate-foot"><span id="genTrackCount">8 дорожек · 16 инструментов</span><span class="generator-seed" id="genSeedLabel">SEED</span></div>
+            <button type="button" class="random-ambient" id="btnRandomAmbient">
+              <svg><use href="#i-dice"></use></svg>
+              <span>Случайный эмбиент</span>
+              <kbd>⇧G</kbd>
+            </button>
+            <button type="button" class="proof-button" id="btnProof">
+              <span class="proof-tag">PROOF</span>
+              <span class="proof-label">20 сек · Wet Hands</span>
+              <span class="proof-arrow">↗</span>
+            </button>
+            <div class="pipeline">
+              <div class="pipeline-head"><span>ПОСЛЕДОВАТЕЛЬНОСТЬ</span><button type="button" id="btnPipelineRun" title="Выполнить все шаги">▶ ВЫПОЛНИТЬ</button></div>
+              <div class="pipeline-steps" id="pipelineSteps">
+                <div class="pipeline-step" data-stage="seed"><b>01</b><span>SEED</span><em id="pipeSeed">—</em></div>
+                <div class="pipeline-step" data-stage="key"><b>02</b><span>KEY</span><em id="pipeKey">—</em></div>
+                <div class="pipeline-step" data-stage="chords"><b>03</b><span>CHORDS</span><em id="pipeChords">—</em></div>
+                <div class="pipeline-step" data-stage="form"><b>04</b><span>FORM</span><em id="pipeForm">—</em></div>
+                <div class="pipeline-step" data-stage="roles"><b>05</b><span>ROLES</span><em id="pipeRoles">—</em></div>
+                <div class="pipeline-step" data-stage="mix"><b>06</b><span>MIX</span><em id="pipeMix">—</em></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="track-card">
+            <div class="section-label">ВЫБРАННАЯ ДОРОЖКА</div>
+            <div id="trackInspector" class="track-inspector"></div>
+          </section>
+
+          <section class="export-card">
+            <div class="section-label">ЭКСПОРТ</div>
+            <button type="button" class="export-button" id="btnExport">
+              <svg><use href="#i-download"></use></svg>
+              <span><strong>Скачать WAV</strong><small>44.1 kHz · 16-bit · stereo</small></span>
+            </button>
+            <p class="fineprint">В файл войдёт хвост реверба. Рендер идёт офлайн и не нагружает интерфейс.</p>
+            <p class="fineprint perf-line" id="exportPerf">Последний рендер: —</p>
+          </section>
+
+          <section class="stats-card">
+            <div><span>НОТЫ</span><strong id="statNotes">—</strong></div>
+            <div><span>КЛИПЫ</span><strong id="statClips">—</strong></div>
+            <div><span>ДЛИНА</span><strong id="statDuration">—</strong></div>
+          </section>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="statusbar">
+      <div class="status-left"><span class="status-light" id="statusLight"></span><span id="statusText">Готово</span></div>
+      <div class="status-center" id="statusCenter">VOLUME ALPHA 2011 · 16 INSTRUMENTS</div>
+      <div class="status-right"><span id="statusVoices">0 голосов</span><span class="status-sep"></span><span id="statusClock">00:00.00</span></div>
+    </footer>
+  </div>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <div id="modalRoot" class="modal-root" hidden></div>
+
+  <div id="exportOverlay" class="export-overlay" hidden>
+    <div class="export-dialog">
+      <div class="export-orbit"></div>
+      <div class="export-kicker">AETHER · OFFLINE RENDER</div>
+      <h2 id="exportTitle">Собираем эмбиент</h2>
+      <p id="exportStatus">Готовим граф…</p>
+      <div class="export-progress"><i id="exportProgress"></i></div>
+      <div class="export-meta"><span id="exportProject">—</span><span id="exportElapsed">0.0 c</span></div>
+      <p class="export-tip">Не закрывайте окно. Рендер идёт офлайн — интерфейс остаётся отзывчивым.</p>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

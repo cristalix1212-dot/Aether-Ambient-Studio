@@ -1,0 +1,10 @@
+﻿build/
+dist/
+Samples/
+*.wav
+*.mp3
+*.log
+__pycache__/
+*.pyc
+AETHER Ambient Studio.lnk
+tests/proof_wet_hands.wav

@@ -1,0 +1,25 @@
+﻿from playwright.sync_api import sync_playwright
+import json
+with sync_playwright() as p:
+    b=p.chromium.launch(headless=True)
+    page=b.new_page(viewport={"width":1560,"height":960})
+    errs=[]
+    page.on('pageerror',lambda e:errs.append(str(e)))
+    page.goto('http://127.0.0.1:8765/index.html',wait_until='domcontentloaded')
+    page.wait_for_function('window.__AETHER_READY__ === true')
+    page.wait_for_timeout(2000)
+    print('pipeline steps',page.locator('.pipeline-step').count(), 'proof',page.locator('#btnProof').count())
+    print('values before',[page.locator(f'#pipe{x}').inner_text() for x in ['Seed','Key','Chords','Form','Roles','Mix']])
+    page.locator('#btnPipelineRun').click()
+    page.wait_for_timeout(900)
+    print('values after',[page.locator(f'#pipe{x}').inner_text() for x in ['Seed','Key','Chords','Form','Roles','Mix']])
+    print('done',page.locator('.pipeline-step.done').count(),'notes',page.evaluate('window.__AETHER__.getState().project.noteCount'))
+    print('algo',page.locator('#btnAlgorithm').click() or page.locator('.algo-actions').inner_text())
+    page.wait_for_timeout(300)
+    print('algo buttons',page.locator('.algo-actions button').count())
+    page.keyboard.press('Escape')
+    page.locator('#btnProof').click(); page.wait_for_timeout(600)
+    print('proof title',page.evaluate('window.__AETHER__.getProject().title'),'tracks',page.evaluate('window.__AETHER__.getProject().tracks.length'))
+    page.screenshot(path=r'C:\Users\Я\Documents\AmbientForge\tests\screens\pipeline_proof.png')
+    print('errs',errs[-5:])
+    b.close()

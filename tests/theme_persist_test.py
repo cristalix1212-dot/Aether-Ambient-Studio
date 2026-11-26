@@ -1,0 +1,23 @@
+﻿from playwright.sync_api import sync_playwright
+import json
+with sync_playwright() as p:
+    b=p.chromium.launch(headless=True)
+    ctx=b.new_context(viewport={"width":1400,"height":900})
+    page=ctx.new_page()
+    page.goto("http://127.0.0.1:8765/index.html", wait_until="domcontentloaded")
+    page.wait_for_function("window.__AETHER_READY__ === true")
+    page.wait_for_timeout(800)
+    page.locator('#btnTheme').click(); page.wait_for_timeout(250)
+    print('before bg', page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()"))
+    page.locator('[data-theme-preset="cave_lantern"]').click(); page.wait_for_timeout(300)
+    print('after bg', page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()"), 'theme', page.evaluate("document.documentElement.dataset.theme"))
+    page.locator('[data-theme-color="accent"]').evaluate("(el)=>{el.value='#ff0000'; el.dispatchEvent(new Event('input',{bubbles:true}))}")
+    page.locator('#themeName').fill('Test Ember')
+    page.locator('[data-theme-apply]').click(); page.wait_for_timeout(300)
+    print('custom theme', page.evaluate("document.documentElement.dataset.themeName"), 'accent', page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()"))
+    print('cards', page.locator('.theme-card').count())
+    page.keyboard.press('Escape'); page.wait_for_timeout(300)
+    page.reload(wait_until="domcontentloaded"); page.wait_for_function("window.__AETHER_READY__ === true"); page.wait_for_timeout(900)
+    print('after reload', page.evaluate("document.documentElement.dataset.themeName"), page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()"))
+    print('errors', page.evaluate("window.__AETHER__.getErrors()"))
+    b.close()
